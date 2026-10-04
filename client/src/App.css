@@ -518,3 +518,211 @@ footer {
 .logout-btn:hover {
     background: #dc2626;
 }
+/* =========================
+   Notification Bell
+========================= */
+
+.notification-container {
+    position: relative;
+}
+
+.notification-btn {
+    position: relative;
+    width: 42px;
+    height: 42px;
+    border: none;
+    background: transparent;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 21px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.notification-btn:hover {
+    background: #f3f4f6;
+}
+
+/* Green unread number */
+
+.notification-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+
+    min-width: 19px;
+    height: 19px;
+
+    padding: 0 5px;
+
+    background: #16a34a;
+    color: white;
+
+    border-radius: 50px;
+
+    font-size: 11px;
+    font-weight: bold;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 2px solid white;
+}
+
+/* Notification dropdown */
+
+.notification-dropdown {
+    position: absolute;
+    top: 50px;
+    right: 0;
+
+    width: 360px;
+    max-height: 480px;
+
+    background: white;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+
+    overflow: hidden;
+
+    z-index: 1000;
+}
+
+/* Header */
+
+.notification-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 16px 18px;
+
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.notification-header h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.mark-read-btn {
+    border: none;
+    background: none;
+
+    color: #2563eb;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+.mark-read-btn:hover {
+    text-decoration: underline;
+}
+
+/* Notification list */
+
+.notification-list {
+    max-height: 410px;
+    overflow-y: auto;
+}
+
+/* Individual notification */
+
+.notification-item {
+    display: flex;
+    gap: 12px;
+
+    padding: 15px 18px;
+
+    border-bottom: 1px solid #f1f5f9;
+
+    cursor: pointer;
+
+    transition: background 0.2s;
+}
+
+.notification-item:hover {
+    background: #f8fafc;
+}
+
+/* Unread notification */
+
+.notification-item.unread {
+    background: #f0fdf4;
+}
+
+.notification-item.unread:hover {
+    background: #dcfce7;
+}
+
+/* Small green dot */
+
+.notification-dot {
+    width: 18px;
+    flex-shrink: 0;
+
+    color: #16a34a;
+
+    font-size: 12px;
+    padding-top: 3px;
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-content p {
+    margin: 0 0 6px;
+
+    font-size: 14px;
+    line-height: 1.4;
+
+    color: #374151;
+}
+
+.notification-content small {
+    color: #9ca3af;
+    font-size: 11px;
+}
+
+/* Empty state */
+
+.no-notifications {
+    padding: 35px 20px;
+
+    text-align: center;
+
+    color: #9ca3af;
+}
+
+.no-notifications p {
+    margin: 0;
+}
+
+
+/* =========================
+   Mobile Notification UI
+========================= */
+
+@media (max-width: 600px) {
+
+    .notification-dropdown {
+        position: fixed;
+
+        top: 70px;
+        left: 10px;
+        right: 10px;
+
+        width: auto;
+
+        max-height: 70vh;
+    }
+
+}

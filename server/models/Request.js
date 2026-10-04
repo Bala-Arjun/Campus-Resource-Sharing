@@ -19,6 +19,12 @@ const requestSchema = new mongoose.Schema(
             required: false
         },
 
+        requesterId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: false
+        },
+
         requesterName: {
             type: String,
             required: true

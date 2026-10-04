@@ -17,6 +17,7 @@ function ResourceDetails({ resource, currentUser, onBack }) {
                 "http://localhost:5000/api/requests",
                 {
                     resourceId: resource._id,
+                    requesterId: currentUser.id,
                     requesterName: currentUser.name,
                     requesterContact: currentUser.email
                 }

@@ -1,3 +1,4 @@
+import NotificationBell from "./NotificationBell";
 import { GoogleLogin } from "@react-oauth/google";
 import Dashboard from "./Dashboard";
 import ResourceDetails from "./ResourceDetails";
@@ -87,7 +88,7 @@ const [currentUser, setCurrentUser] = useState(() => {
                     {currentUser ? (
     <div className="user-menu">
         <span>👤 {currentUser.name}</span>
-
+        <NotificationBell currentUser={currentUser} />
         <button
             className="logout-btn"
             onClick={() => {

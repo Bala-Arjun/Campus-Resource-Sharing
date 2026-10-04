@@ -1,3 +1,4 @@
+const notificationRoutes = require("./routes/notificationRoutes");
 const authRoutes = require("./routes/authRoutes");
 const requestRoutes = require("./routes/requestRoutes");
 const resourceRoutes = require("./routes/resourceRoutes");
@@ -14,6 +15,7 @@ app.use(express.json());
 app.use("/api/resources", resourceRoutes);
 app.use("/api/requests", requestRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // MongoDB connection
 mongoose
