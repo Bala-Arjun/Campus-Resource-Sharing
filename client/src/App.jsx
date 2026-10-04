@@ -8,156 +8,278 @@ import AddResource from "./AddResource";
 import "./App.css";
 
 function App() {
-   const [resources, setResources] = useState([]);
-const [showForm, setShowForm] = useState(false);
-const [searchTerm, setSearchTerm] = useState("");
-const [selectedResource, setSelectedResource] = useState(null);
-const [showDashboard, setShowDashboard] = useState(false);
-const [currentUser, setCurrentUser] = useState(() => {
-    const savedUser = localStorage.getItem("campusShareUser");
+    const [resources, setResources] = useState([]);
+    const [showForm, setShowForm] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [selectedResource, setSelectedResource] = useState(null);
+    const [showDashboard, setShowDashboard] = useState(false);
 
-    return savedUser ? JSON.parse(savedUser) : null;
-});
+    const [currentUser, setCurrentUser] = useState(() => {
+        const savedUser = localStorage.getItem("campusShareUser");
+        return savedUser ? JSON.parse(savedUser) : null;
+    });
 
     useEffect(() => {
-        axios
-            .get("http://localhost:5000/api/resources")
-            .then((response) => {
-                setResources(response.data);
-            })
-            .catch((error) => {
-                console.error("Failed to fetch resources:", error);
-            });
+        fetchResources();
     }, []);
 
+    const fetchResources = async () => {
+        try {
+            const response = await axios.get(
+                "http://localhost:5000/api/resources"
+            );
+
+            setResources(response.data);
+        } catch (error) {
+            console.error("Failed to fetch resources:", error);
+        }
+    };
+
     const handleSearch = async () => {
-    if (!searchTerm.trim()) {
-        // If search is empty, load all resources again
-        const response = await axios.get(
-            "http://localhost:5000/api/resources"
-        );
+        if (!searchTerm.trim()) {
+            fetchResources();
+            return;
+        }
 
-        setResources(response.data);
-        return;
-    }
+        try {
+            const response = await axios.get(
+                `http://localhost:5000/api/resources/search?q=${searchTerm}`
+            );
 
-    try {
-        const response = await axios.get(
-            `http://localhost:5000/api/resources/search?q=${searchTerm}`
-        );
+            setResources(response.data);
+        } catch (error) {
+            console.error("Search failed:", error);
+        }
+    };
 
-        setResources(response.data);
-    } catch (error) {
-        console.error("Search failed:", error);
-    }
-};
+    const handleCategoryClick = async (category) => {
+        setSearchTerm(category);
 
-    return (
-    <>
-        {selectedResource ? (
+        try {
+            const response = await axios.get(
+                `http://localhost:5000/api/resources/search?q=${category}`
+            );
+
+            setResources(response.data);
+        } catch (error) {
+            console.error("Category search failed:", error);
+        }
+    };
+
+    const handleLogout = () => {
+        setCurrentUser(null);
+        localStorage.removeItem("campusShareUser");
+    };
+
+    if (selectedResource) {
+        return (
             <ResourceDetails
                 resource={selectedResource}
                 currentUser={currentUser}
                 onBack={() => setSelectedResource(null)}
             />
-        ) : showDashboard ? (
+        );
+    }
+
+    if (showDashboard) {
+        return (
             <Dashboard
                 currentUser={currentUser}
                 onBack={() => setShowDashboard(false)}
             />
-        ) : (
-            <div className="app">
-            {/* Navigation Bar */}
+        );
+    }
+
+    return (
+        <div className="app">
+
+            {/* ================= NAVBAR ================= */}
+
             <nav className="navbar">
-                <div className="logo">
-                    CampusShare
-                </div>
+
+                <button
+                    className="logo"
+                    onClick={() => {
+                        setShowDashboard(false);
+                        setSelectedResource(null);
+                        window.scrollTo({
+                            top: 0,
+                            behavior: "smooth"
+                        });
+                    }}
+                >
+                    <span className="logo-icon">C</span>
+                    <span>Campus<span>Share</span></span>
+                </button>
 
                 <div className="nav-links">
-                    <a href="/">Home</a>
-                    <a href="/">Resources</a>
-                    <a href="/">About</a>
 
                     <button
-                        className="dashboard-btn"
-                        onClick={() => setShowDashboard(true)}
+                        onClick={() =>
+                            window.scrollTo({
+                                top: 0,
+                                behavior: "smooth"
+                            })
+                        }
                     >
-                        Dashboard
+                        Home
                     </button>
 
+                    <button
+                        onClick={() =>
+                            document
+                                .getElementById("resources-section")
+                                ?.scrollIntoView({
+                                    behavior: "smooth"
+                                })
+                        }
+                    >
+                        Resources
+                    </button>
+
+                    <button
+                        onClick={() =>
+                            document
+                                .getElementById("about-section")
+                                ?.scrollIntoView({
+                                    behavior: "smooth"
+                                })
+                        }
+                    >
+                        About
+                    </button>
+
+                    {currentUser && (
+                        <button
+                            className="dashboard-nav-btn"
+                            onClick={() => setShowDashboard(true)}
+                        >
+                            Dashboard
+                        </button>
+                    )}
+
                     {currentUser ? (
-    <div className="user-menu">
-        <span>👤 {currentUser.name}</span>
-        <NotificationBell currentUser={currentUser} />
-        <button
-            className="logout-btn"
-            onClick={() => {
-            setCurrentUser(null);
-            localStorage.removeItem("campusShareUser");
-        }}
-        >
-            Logout
-        </button>
-    </div>
-) : (
-    <GoogleLogin
-        onSuccess={async (credentialResponse) => {
-            try {
-                const response = await axios.post(
-                    "http://localhost:5000/api/auth/google",
-                    {
-                        credential: credentialResponse.credential
-                    }
-                );
+                        <div className="user-menu">
 
-                const user = response.data.user;
+                            <NotificationBell
+                                currentUser={currentUser}
+                            />
 
-                console.log("Logged in user:", user);
+                            <div className="user-profile">
+                                {currentUser.profilePicture ? (
+                                    <img
+                                        src={currentUser.profilePicture}
+                                        alt=""
+                                    />
+                                ) : (
+                                    <div className="user-avatar">
+                                        {currentUser.name
+                                            ?.charAt(0)
+                                            .toUpperCase()}
+                                    </div>
+                                )}
 
-                setCurrentUser(user);
-                localStorage.setItem(
-                "campusShareUser",
-                JSON.stringify(user)
-            );
+                                <span>{currentUser.name}</span>
+                            </div>
 
-                alert(`Welcome, ${user.name}!`);
-            } catch (error) {
-                console.error("Login failed:", error);
-                alert("Google login failed.");
-            }
-        }}
-        onError={() => {
-            console.log("Google Login Failed");
-            alert("Google login failed.");
-        }}
-    />
-)}
+                            <button
+                                className="logout-btn"
+                                onClick={handleLogout}
+                            >
+                                Logout
+                            </button>
+
+                        </div>
+                    ) : (
+                        <div className="google-login-wrapper">
+                            <GoogleLogin
+                                onSuccess={async (
+                                    credentialResponse
+                                ) => {
+                                    try {
+                                        const response =
+                                            await axios.post(
+                                                "http://localhost:5000/api/auth/google",
+                                                {
+                                                    credential:
+                                                        credentialResponse.credential
+                                                }
+                                            );
+
+                                        const user =
+                                            response.data.user;
+
+                                        setCurrentUser(user);
+
+                                        localStorage.setItem(
+                                            "campusShareUser",
+                                            JSON.stringify(user)
+                                        );
+
+                                        alert(
+                                            `Welcome, ${user.name}!`
+                                        );
+                                    } catch (error) {
+                                        console.error(
+                                            "Login failed:",
+                                            error
+                                        );
+
+                                        alert(
+                                            "Google login failed."
+                                        );
+                                    }
+                                }}
+                                onError={() => {
+                                    alert(
+                                        "Google login failed."
+                                    );
+                                }}
+                            />
+                        </div>
+                    )}
+
                 </div>
             </nav>
 
 
-            {/* Hero Section */}
+            {/* ================= HERO ================= */}
+
             <section className="hero">
+
+                <div className="hero-background-circle circle-one"></div>
+                <div className="hero-background-circle circle-two"></div>
 
                 <div className="hero-content">
 
+                    <div className="hero-badge">
+                        <span>✦</span>
+                        Built for students, by students
+                    </div>
+
                     <h1>
-                        Share Resources.
+                        Share what you have.
                         <br />
-                        Help Your Campus.
+                        <span>Find what you need.</span>
                     </h1>
 
                     <p>
-                        Find, share and borrow useful resources
-                        from students across your campus.
+                        CampusShare makes it easy for students to
+                        share notes, books, equipment and useful
+                        resources with their campus community.
                     </p>
 
                     <div className="search-box">
+
+                        <span className="search-icon">⌕</span>
+
                         <input
                             type="text"
-                            placeholder="Search for notes, books, equipment..."
+                            placeholder="Search notes, books, calculators..."
                             value={searchTerm}
-                            onChange={(event) => setSearchTerm(event.target.value)}
+                            onChange={(event) =>
+                                setSearchTerm(event.target.value)
+                            }
                             onKeyDown={(event) => {
                                 if (event.key === "Enter") {
                                     handleSearch();
@@ -168,6 +290,23 @@ const [currentUser, setCurrentUser] = useState(() => {
                         <button onClick={handleSearch}>
                             Search
                         </button>
+
+                    </div>
+
+                    <div className="hero-features">
+
+                        <span>
+                            ✓ Student focused
+                        </span>
+
+                        <span>
+                            ✓ Easy to share
+                        </span>
+
+                        <span>
+                            ✓ Campus community
+                        </span>
+
                     </div>
 
                 </div>
@@ -175,132 +314,374 @@ const [currentUser, setCurrentUser] = useState(() => {
             </section>
 
 
-            {/* Categories */}
+            {/* ================= CATEGORIES ================= */}
+
             <section className="categories">
 
-                <h2>Browse Categories</h2>
+                <div className="section-title">
+
+                    <div>
+                        <span className="section-label">
+                            EXPLORE
+                        </span>
+
+                        <h2>Browse by category</h2>
+                    </div>
+
+                    <p>
+                        Find exactly what you're looking for.
+                    </p>
+
+                </div>
 
                 <div className="category-container">
 
-                    <div className="category-card">
-                        📚
-                        <h3>Notes</h3>
-                        <p>Lecture notes and study material</p>
-                    </div>
+                    <button
+                        className="category-card notes-card"
+                        onClick={() =>
+                            handleCategoryClick("Notes")
+                        }
+                    >
+                        <div className="category-icon">
+                            📚
+                        </div>
 
-                    <div className="category-card">
-                        📖
-                        <h3>Books</h3>
-                        <p>Books available for sharing</p>
-                    </div>
+                        <div>
+                            <h3>Notes</h3>
+                            <p>
+                                Lecture notes and study material
+                            </p>
+                        </div>
 
-                    <div className="category-card">
-                        💻
-                        <h3>Equipment</h3>
-                        <p>Laptops, calculators and more</p>
-                    </div>
+                        <span className="category-arrow">
+                            →
+                        </span>
+                    </button>
 
-                    <div className="category-card">
-                        📦
-                        <h3>Other</h3>
-                        <p>Other useful campus resources</p>
-                    </div>
+                    <button
+                        className="category-card books-card"
+                        onClick={() =>
+                            handleCategoryClick("Books")
+                        }
+                    >
+                        <div className="category-icon">
+                            📖
+                        </div>
+
+                        <div>
+                            <h3>Books</h3>
+                            <p>
+                                Books available for sharing
+                            </p>
+                        </div>
+
+                        <span className="category-arrow">
+                            →
+                        </span>
+                    </button>
+
+                    <button
+                        className="category-card equipment-card"
+                        onClick={() =>
+                            handleCategoryClick("Equipment")
+                        }
+                    >
+                        <div className="category-icon">
+                            💻
+                        </div>
+
+                        <div>
+                            <h3>Equipment</h3>
+                            <p>
+                                Calculators, laptops and more
+                            </p>
+                        </div>
+
+                        <span className="category-arrow">
+                            →
+                        </span>
+                    </button>
+
+                    <button
+                        className="category-card other-card"
+                        onClick={() =>
+                            handleCategoryClick("Other")
+                        }
+                    >
+                        <div className="category-icon">
+                            📦
+                        </div>
+
+                        <div>
+                            <h3>Other</h3>
+                            <p>
+                                Other useful campus resources
+                            </p>
+                        </div>
+
+                        <span className="category-arrow">
+                            →
+                        </span>
+                    </button>
 
                 </div>
 
             </section>
 
 
-            {/* Recent Resources */}
-            <section className="resources">
+            {/* ================= RESOURCES ================= */}
 
-                <div className="section-header">
-                    <h2>Recent Resources</h2>
+            <section
+                className="resources"
+                id="resources-section"
+            >
 
-                    <button className="view-btn">
-                        View All
+                <div className="section-title resource-heading">
+
+                    <div>
+                        <span className="section-label">
+                            COMMUNITY
+                        </span>
+
+                        <h2>Recently shared</h2>
+                    </div>
+
+                    <button
+                        className="view-btn"
+                        onClick={fetchResources}
+                    >
+                        View all resources →
                     </button>
+
                 </div>
 
+                {resources.length === 0 ? (
 
-                <div className="resource-container">
+                    <div className="empty-resources">
 
-                    {resources.length === 0 ? (
-                        <p>No resources available yet.</p>
-                    ) : (
-                        resources.map((resource) => (
+                        <div className="empty-icon">
+                            🔎
+                        </div>
+
+                        <h3>No resources found</h3>
+
+                        <p>
+                            Try another search or be the first
+                            student to share something.
+                        </p>
+
+                        {searchTerm && (
+                            <button
+                                onClick={() => {
+                                    setSearchTerm("");
+                                    fetchResources();
+                                }}
+                            >
+                                Clear search
+                            </button>
+                        )}
+
+                    </div>
+
+                ) : (
+
+                    <div className="resource-container">
+
+                        {resources.map((resource) => (
+
                             <div
                                 className="resource-card"
                                 key={resource._id}
-                                onClick={() => setSelectedResource(resource)}
+                                onClick={() =>
+                                    setSelectedResource(resource)
+                                }
                             >
 
-                                <span className="resource-type">
-                                    {resource.type}
-                                </span>
+                                <div className="resource-card-top">
 
-                                <h3>{resource.title}</h3>
+                                    <span className="resource-type">
+                                        {resource.type}
+                                    </span>
 
-                                <p>{resource.description}</p>
+                                    <span className="resource-category">
+                                        {resource.category}
+                                    </span>
 
-                                <small>
-                                    Shared by {resource.owner}
-                                </small>
+                                </div>
+
+                                <h3>
+                                    {resource.title}
+                                </h3>
+
+                                <p>
+                                    {resource.description}
+                                </p>
+
+                                <div className="resource-footer">
+
+                                    <div className="resource-owner">
+
+                                        <div className="owner-avatar">
+                                            {resource.owner
+                                                ?.charAt(0)
+                                                .toUpperCase()}
+                                        </div>
+
+                                        <span>
+                                            {resource.owner}
+                                        </span>
+
+                                    </div>
+
+                                    <span className="card-arrow">
+                                        →
+                                    </span>
+
+                                </div>
 
                             </div>
-                        ))
-                    )}
+
+                        ))}
+
+                    </div>
+
+                )}
+
+            </section>
+
+
+            {/* ================= SHARE CTA ================= */}
+
+            <section
+                className="share-section"
+                id="about-section"
+            >
+
+                <div className="share-decoration decoration-one"></div>
+                <div className="share-decoration decoration-two"></div>
+
+                <div className="share-content">
+
+                    <div className="share-icon">
+                        ✦
+                    </div>
+
+                    <span className="section-label light-label">
+                        GIVE BACK TO YOUR CAMPUS
+                    </span>
+
+                    <h2>
+                        Have something useful?
+                    </h2>
+
+                    <p>
+                        Share your notes, books or equipment
+                        and help another student succeed.
+                    </p>
+
+                    <button
+                        className="share-btn"
+                        onClick={() => {
+                            if (!currentUser) {
+                                alert(
+                                    "Please sign in with Google before sharing a resource."
+                                );
+                                return;
+                            }
+
+                            setShowForm(true);
+                        }}
+                    >
+                        + Share a Resource
+                    </button>
 
                 </div>
 
             </section>
 
 
-            {/* Share Resource */}
-            <section className="share-section">
+            {/* ================= ADD RESOURCE ================= */}
 
-                <h2>Have something useful?</h2>
-
-                <p>
-                    Share your notes, books or equipment
-                    with other students.
-                </p>
-
-                <button
-                    className="share-btn"
-                    onClick={() => setShowForm(true)}
-                >
-                    + Share a Resource
-                </button>
-
-            </section>
-
-
-            {/* Add Resource Form */}
             {showForm && (
-                <AddResource
-                  currentUser={currentUser}
-                  onResourceAdded={(newResource) => {
-                      setResources((previousResources) => [
-                          newResource,
-                          ...previousResources
-                      ]);
-                      setShowForm(false);
-                  }}
-              />
+                <div className="form-overlay">
+
+                    <div className="form-modal">
+
+                        <button
+                            className="form-close"
+                            onClick={() => setShowForm(false)}
+                        >
+                            ×
+                        </button>
+
+                        <AddResource
+                            currentUser={currentUser}
+                            onResourceAdded={(newResource) => {
+                                setResources(
+                                    (previousResources) => [
+                                        newResource,
+                                        ...previousResources
+                                    ]
+                                );
+
+                                setShowForm(false);
+                            }}
+                        />
+
+                    </div>
+
+                </div>
             )}
 
 
-            {/* Footer */}
+            {/* ================= FOOTER ================= */}
+
             <footer>
-                <p>
-                    © 2026 CampusShare — Built for students.
-                </p>
+
+                <div className="footer-main">
+
+                    <div className="footer-brand">
+
+                        <div className="footer-logo">
+                            <span className="logo-icon">
+                                C
+                            </span>
+
+                            CampusShare
+                        </div>
+
+                        <p>
+                            Connecting students through
+                            resource sharing.
+                        </p>
+
+                    </div>
+
+                    <div className="footer-links">
+
+                        <span>Student Community</span>
+                        <span>Share Resources</span>
+                        <span>Help Each Other</span>
+
+                    </div>
+
+                </div>
+
+                <div className="footer-bottom">
+
+                    <p>
+                        © 2026 CampusShare
+                    </p>
+
+                    <p>
+                        Built for students.
+                    </p>
+
+                </div>
+
             </footer>
 
         </div>
-        )}
-        </>
     );
 }
 
