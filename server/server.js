@@ -4,6 +4,7 @@ const requestRoutes = require("./routes/requestRoutes");
 const resourceRoutes = require("./routes/resourceRoutes");
 const Request = require("./models/Request");
 const Notification = require("./models/Notification");
+const { createNotification } = require("./services/notificationService");
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -45,7 +46,7 @@ async function runBorrowReminders() {
         });
 
         for (const request of dueSoon) {
-            await Notification.create({
+            await createNotification({
                 userId: request.requesterId,
                 message: `Reminder: "${request.resourceTitle}" is due back by ${request.dueAt.toLocaleString()}.`,
                 type: "BORROW_DUE_SOON",
@@ -64,7 +65,7 @@ async function runBorrowReminders() {
         });
 
         for (const request of overdue) {
-            await Notification.create({
+            await createNotification({
                 userId: request.requesterId,
                 message: `"${request.resourceTitle}" is past its return time. Please return it or contact the owner.`,
                 type: "BORROW_OVERDUE",

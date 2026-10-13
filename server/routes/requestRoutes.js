@@ -1,7 +1,7 @@
 const express = require("express");
 const Request = require("../models/Request");
 const Resource = require("../models/Resource");
-const Notification = require("../models/Notification");
+const { createNotification } = require("../services/notificationService");
 const router = express.Router();
 
 // Create a resource request
@@ -50,7 +50,7 @@ router.post("/", async (req, res) => {
 
         const savedRequest = await request.save();
         if (resource.ownerId) {
-            await Notification.create({
+            await createNotification({
                 userId: resource.ownerId,
                 message: `${requesterName} requested your resource "${resource.title}".`,
                 type: "RESOURCE_REQUEST",
@@ -166,7 +166,7 @@ router.patch("/:id/status", async (req, res) => {
 
         // Notify the student who made the request
         if (request.requesterId) {
-            await Notification.create({
+            await createNotification({
                 userId: request.requesterId,
                 message: status === "Accepted" && request.dueAt
                     ? `Your request for "${request.resourceTitle}" was accepted. Please return it by ${request.dueAt.toLocaleString()}.`

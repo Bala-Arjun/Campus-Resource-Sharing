@@ -4,6 +4,7 @@ import Dashboard from "./Dashboard";
 import ResourceDetails from "./ResourceDetails";
 import { useEffect, useState } from "react";
 import api from "./api";
+import { disablePushNotifications } from "./pushNotifications";
 import AddResource from "./AddResource";
 import "./App.css";
 
@@ -74,6 +75,11 @@ function App() {
     };
 
     const handleLogout = () => {
+        if (currentUser) {
+            disablePushNotifications(currentUser.id).catch((error) => {
+                console.error("Failed to clear push notifications on logout:", error);
+            });
+        }
         setCurrentUser(null);
         localStorage.removeItem("campusShareUser");
     };

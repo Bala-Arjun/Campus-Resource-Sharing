@@ -1197,6 +1197,54 @@ footer {
     text-decoration: underline;
 }
 
+.push-settings {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 12px 16px;
+    border-bottom: 1px solid #eef2f7;
+    background: #f8fafc;
+}
+
+.push-settings div {
+    display: grid;
+    gap: 3px;
+}
+
+.push-settings strong {
+    color: #172033;
+    font-size: 12px;
+}
+
+.push-settings small,
+.push-settings p {
+    margin: 0;
+    color: #64748b;
+    font-size: 11px;
+}
+
+.push-settings > button {
+    padding: 8px 11px;
+    border: 0;
+    border-radius: 8px;
+    background: #2563eb;
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.push-settings > button:disabled {
+    opacity: .65;
+    cursor: wait;
+}
+
+.push-settings p {
+    flex-basis: 100%;
+}
+
 .notification-list {
     max-height: 430px;
 

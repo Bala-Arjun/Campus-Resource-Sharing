@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
 import api from "./api";
+import { disablePushNotifications, enablePushNotifications, getPushSubscription } from "./pushNotifications";
 
 function NotificationBell({ currentUser }) {
     const [notifications, setNotifications] = useState([]);
     const [showNotifications, setShowNotifications] = useState(false);
+    const [pushEnabled, setPushEnabled] = useState(false);
+    const [pushBusy, setPushBusy] = useState(false);
+    const [pushMessage, setPushMessage] = useState("");
 
     const fetchNotifications = async () => {
         if (!currentUser) {
@@ -29,6 +33,34 @@ function NotificationBell({ currentUser }) {
 
         return () => clearInterval(interval);
     }, [currentUser]);
+
+    useEffect(() => {
+        let active = true;
+        getPushSubscription().then((subscription) => {
+            if (active) setPushEnabled(Boolean(subscription));
+        }).catch(() => {});
+        return () => { active = false; };
+    }, [currentUser]);
+
+    const togglePush = async () => {
+        setPushBusy(true);
+        setPushMessage("");
+        try {
+            if (pushEnabled) {
+                await disablePushNotifications(currentUser.id);
+                setPushEnabled(false);
+                setPushMessage("Push reminders are off on this device.");
+            } else {
+                await enablePushNotifications(currentUser.id);
+                setPushEnabled(true);
+                setPushMessage("Push reminders are enabled on this device.");
+            }
+        } catch (error) {
+            setPushMessage(error.response?.data?.message || error.message || "Could not update push settings.");
+        } finally {
+            setPushBusy(false);
+        }
+    };
 
     const unreadCount = notifications.filter(
         (notification) => !notification.isRead
@@ -100,6 +132,17 @@ function NotificationBell({ currentUser }) {
                                 Mark all as read
                             </button>
                         )}
+                    </div>
+
+                    <div className="push-settings">
+                        <div>
+                            <strong>CampusShare push alerts</strong>
+                            <small>Get request and borrow alerts when this site is closed.</small>
+                        </div>
+                        <button onClick={togglePush} disabled={pushBusy}>
+                            {pushBusy ? "Please wait…" : pushEnabled ? "Turn off" : "Enable push"}
+                        </button>
+                        {pushMessage && <p role="status">{pushMessage}</p>}
                     </div>
 
                     {notifications.length === 0 ? (
